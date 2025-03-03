@@ -351,3 +351,340 @@ ICMP provides error reporting and operational information for IP.
 `traceroute or tracert`: Traces the route to a destination (uses ICMP Time Exceeded)  
 `pathping`: Combines ping and traceroute functionality  
 **Common issues:** ICMP blocking by firewalls, rate limiting, MTU problems  
+
+# 3. Network Devices and Hardware
+
+## DNS (Domain Name System)
+DNS translates human-readable domain names (like www.mit.edu) to IP addresses.
+
+### Types of DNS Records
+**A Record:** Maps a domain name to an IPv4 address  
+**Example:** `www.example.com `→ `93.184.216.34`  
+
+**AAAA Record:** Maps a domain name to an IPv6 address  
+**Example:**` www.example.com `→ `2606:2800:220:1:248:1893:25c8:1946`  
+
+**CNAME Record:** Creates an alias from one domain to another  
+**Example:** `docs.example.com` → `example.zendesk.com`
+
+**MX Record:** Specifies mail servers for a domain  
+**Example:** `example.com` → `mail1.example.com` (priority 10), `mail2.example.com` (priority 20)  
+
+**TXT Record:** Stores text information, often for verification  
+**Example:** `example.com` → `"v=spf1 include:_spf.example.com ~all"`
+
+**NS Record:** Specifies authoritative name servers for a domain  
+**Example:** example.com → ns1.example.com, ns2.example.com  
+
+**PTR Record:** Reverse DNS lookup, maps IP to domain name
+**Example:** `34.216.184.93.in-addr.arpa` →` www.example.com`
+
+**SOA Record:** Start of Authority, contains administrative information  
+**Example:** Contains primary name server, admin email, serial number, refresh times
+
+### Tools Used for DNS Debugging
+`nslookup`: Queries DNS servers for resource records  
+**Example**: `nslookup www.mit.edu`  
+
+`dig`: More detailed DNS lookup tool  
+**Example**: `dig www.mit.edu A`  
+
+`host`: Simple DNS lookup utility  
+**Example:** `host -t MX example.com`  
+
+`whois`: Retrieves domain registration information
+**Example:** `whois mit.edu`  
+
+**DNS analyzer tools like intoDNS, MXToolbox**  
+Check propagation, record configuration, and health  
+
+## Ports
+Ports are logical endpoints for communication in an IP network, allowing multiple services to operate on a single IP address.
+
+### Well-Known Ports (0-1023)
+`20/21`: FTP (File Transfer Protocol)
+`22`: SSH (Secure Shell)
+`23`: Telnet
+`25`: SMTP (Simple Mail Transfer Protocol)
+`53`: DNS (Domain Name System)
+`80`: HTTP (Hypertext Transfer Protocol)
+`443`: HTTPS (HTTP Secure)
+
+### Registered Ports (1024-49151)
+`1194`: OpenVPN
+`1433`: Microsoft SQL Server
+`3306`: MySQL
+`3389`: RDP (Remote Desktop Protocol)
+`5060`: SIP (Session Initiation Protocol)
+`8080`: Alternative HTTP port, often for proxies
+
+### Dynamic/Private Ports (49152-65535)
+Used for temporary client-side port allocation  
+Not assigned to specific services  
+**Example:** When you connect to a website, your browser might use port 52431 as the source port  
+
+## Router
+A router connects different networks and routes data packets between them based on their IP addresses.
+
+### Position of Router
+Positioned at the boundaries between networks
+* For home networks: Between LAN and WAN (Internet)
+* For enterprise: Between different subnets, departments, or sites
+* For ISPs: Between different autonomous systems
+
+### Components of a Router
+`CPU`: Processes routing information and makes forwarding decisions  
+`RAM`: Stores routing tables and running configuration  
+`Flash` Memory: Stores the router's operating system  
+`NVRAM`: Stores startup configuration  
+`Interfaces`: Physical connections to networks (Ethernet, serial, fiber)  
+`Console Port`: For direct administrative access  
+`Routing Software`: Operating system specialized for routing (e.g., Cisco IOS, Juniper JUNOS)  
+
+### Route Table
+A routing table contains information about:
+1. [x] Network destinations
+2. [x] Next hop addresses
+3. [x] Metrics/costs associated with routes
+4. [x] Exit interfaces
+
+**Example of a simple routing table:**  
+``` bash
+CopyDestination     Gateway         Genmask         Flags   Interface
+0.0.0.0             192.168.1.1     0.0.0.0         UG      eth0
+192.168.1.0         0.0.0.0         255.255.255.0   U       eth0
+```  
+
+### Interfaces
+
+Router interfaces connect to different networks and have:
+* Physical layer specifications (Ethernet, fiber, etc.)
+* Data link layer protocols (PPP, HDLC, etc.)
+* IP addresses and subnet masks
+* Various configuration parameters (speed, duplex, etc.)
+
+### Routing Protocols
+Routing protocols determine how routers communicate to exchange information about network topology and reachability.
+
+### Ways of Routing
+**Dynamic Routing**
+* Routers automatically exchange network topology information
+* Adapts to network changes and failures
+* Examples:
+  * Distance Vector Protocols: RIP, EIGRP
+      * Share information about distance (hops) to destinations
+      * Like telling a friend "The library is 3 blocks away, the café is 2 blocks away"
+  * Link State Protocols: OSPF, IS-IS
+      * Share complete topology information, build a map
+      * Like giving someone a detailed map with all roads and distances marked
+  * Path Vector Protocols: BGP
+      * Share path information to reach destinations
+      * Used primarily for Internet routing
+      * Like telling someone "To reach Boston, go through New York, to reach Miami, go through Atlanta"
+
+**Static Routing**
+* Routes manually configured by administrators
+* Doesn't adapt automatically to changes
+* Used for:
+  * Small networks with simple topology
+  * Special routing requirements
+  * Default routes to the Internet
+* Example: `ip route 192.168.2.0 255.255.255.0 10.0.0.1`
+
+## Troubleshooting Routing Issues Commands
+`ping`: Tests basic connectivity  
+`traceroute` (Unix) or `tracert` (Windows): Shows the path to a destination  
+`pathping`: Combines ping and traceroute with statistics  
+`route print` (Windows) or `netstat -r` (Unix): Shows routing table  
+`ip route` (Linux): Modern command to manage routes  
+`show ip route` (Cisco): Shows routing table on Cisco devices  
+`show ip protocols` (Cisco): Shows running routing protocols  
+`debug ip routing` (Cisco): Shows routing updates in real-time  
+
+## Switches
+Switches operate at Layer 2 (Data Link) and forward frames based on MAC addresses within a local network.
+
+### How Switches Work
+Switches maintain a MAC address table (CAM table) mapping MAC addresses to physical ports.  
+**Learning**  
+* When a frame arrives, the switch records the source MAC address and the incoming port
+* Example: Frame from MAC 00:1A:2B:3C:4D:5E arrives on port 3, switch adds this mapping to its table  
+**Forwarding the Frame**
+* Switch looks up the destination MAC address in its table
+* If found, forwards the frame only to the port where that MAC address is located
+* Example: Frame destined for `00:5E:4D:3C:2B:1A`, which the switch knows is on port 7  
+**Flooding**  
+* If the destination MAC is unknown, the switch floods the frame to all ports except the one it came from
+* Once the destination replies, the switch learns its location
+* Example: When a device first connects, other devices won't know its location, so initial frames are flooded
+
+## NIC (Network Interface Card)
+A NIC provides the hardware interface between a computer and a network.
+
+### Functions:
+1. [x] Physical connection to the network medium
+2. [x] MAC address storage
+3. [x] Frame creation and recognition
+4. [x] Media access control
+5. [x] Encoding/decoding signals
+
+### Real-World Example Includes Laptop, Switch, Router, and Server
+1. Your laptop has a NIC (Wi-Fi or Ethernet)
+2. The laptop connects to a switch in the office network
+3. The switch forwards traffic to the appropriate destination
+4. The router connects the office network to the Internet
+5. When you access a web application, the server has its own NIC that receives your request
+
+## Load Balancer
+A load balancer distributes network traffic across multiple servers to ensure high availability and reliability.
+
+### Types of Algorithms
+**Round Robin:** Requests are distributed sequentially across the server group  
+**Example:** First request to Server 1, second to Server 2, third to Server 3, fourth back to Server 1  
+
+
+**Least Connection:** Sends requests to the server with fewest active connections  
+**Example:** Server 1 has 10 connections, Server 2 has 3, Server 3 has 7 → new request goes to Server 2
+
+**Weighted Round Robin/Least Connection:** Assigns a weight to each server based on capacity  
+**Example:** Server 1 (weight 4) gets 4 requests for every 2 that Server 2 (weight 2) gets
+
+**IP Hash:** Uses client IP address to determine which server receives the request  
+* Ensures a client always connects to the same server  
+* Useful for session persistence  
+
+**Least Response Time:** Sends requests to the server with the lowest response time
+* Balances both connection count and performance
+
+## Firewalls
+Firewalls monitor and control incoming and outgoing network traffic based on predetermined security rules.
+
+### Types of Firewalls
+**Packet Filtering Firewall:**
+Examines packet headers based on pre-defined rules  
+**Stateless:** Doesn't track connections  
+**Example:** Blocking all traffic to port 23 (Telnet)  
+
+**Stateful Inspection Firewall:**  
+Tracks the state of active connections  
+Makes decisions based on context, not just individual packets  
+**Example:** Allowing return traffic for established connections  
+
+**Application Layer Firewall (Proxy Firewall):**  
+Inspects the actual content of the traffic  
+Can understand application protocols like HTTP, FTP  
+**Example:** Blocking websites based on content or URLs  
+
+**Next-Generation Firewall (NGFW):**  
+Combines traditional firewall with advanced features  
+Includes deep packet inspection, intrusion prevention, application awareness  
+**Example:** Identifying and controlling applications regardless of port used  
+
+**Network Address Translation (NAT) Firewall:**  
+Hides private network addresses  
+**Example:** Home router hiding internal devices behind a single public IP  
+
+## IPTables
+
+IPTables is a powerful firewall tool for Linux systems that configures the kernel's netfilter framework.
+
+### Commands to Work with IPTables, to Setup, Remove, Alter, and Debug While Issue
+
+#### Basic Syntax:
+```bash
+iptables [-t table] command [match] [target/jump]
+```
+## Tables:
+
+* `filter`: Default table for packet filtering
+* `nat`: For network address translation
+* `mangle`: For packet alteration
+* `raw`: For configuration exemptions
+
+## Commands:
+
+* `-L`: List rules
+* `-A`: Append rule
+* `-I`: Insert rule
+* `-D`: Delete rule
+* `-F`: Flush (delete all rules)
+* `-P`: Set default policy
+
+## Setup Examples:
+
+1. List current rules:
+```bash
+iptables -L
+```
+
+2. Block a specific IP address:
+
+```bash
+iptables -A INPUT -s 192.168.1.100 -j DROP
+```
+
+3. Allow incoming SSH connections:
+```bash
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+```
+
+4. Set up basic NAT:
+```bash
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+```
+
+5.Allow established connections:
+```bash
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+```
+
+## Remove Examples:
+
+1. Remove a specific rule (by number):
+```bash
+iptables -D INPUT 3
+```
+
+2. Remove a specific rule (by specification):
+```bash
+iptables -D INPUT -s 192.168.1.100 -j DROP
+```
+
+3. Remove all rules:
+```bash
+iptables -F
+```
+
+## Alter Examples:
+
+1. Change default policy:
+```bash
+iptables -P INPUT DROP
+```
+
+2. Replace a rule:
+```bash
+iptables -R INPUT 2 -s 192.168.1.0/24 -j ACCEPT
+```
+
+## Debug Examples:
+
+1. Enable logging for debugging:
+```bash
+iptables -A INPUT -j LOG --log-prefix "IPTables-Dropped: "
+```
+
+2. Check packet counters to see which rules are being matched:
+```bash
+iptables -L -v
+```
+
+3. Track connections:
+```bash
+conntrack -L
+```
+
+4. Follow logs in real-time:
+```bash
+tail -f /var/log/kern.log | grep IPTables
+```
